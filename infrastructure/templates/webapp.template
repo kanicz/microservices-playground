@@ -494,7 +494,7 @@
         "ContainerDefinitions": [
           {
             "Name": "webapp",
-            "Image": "kanicz/aws-microservices-playground",
+            "Image": "kanicz/microservices-webapp",
             "Memory": "768",
             "PortMappings": [
               {
@@ -552,6 +552,165 @@
         },
         "TaskDefinition": {
           "Ref": "WebappTask"
+        }
+      }
+    },
+    "EurekaLoadBalancerSecurityGroup": {
+      "Type": "AWS::EC2::SecurityGroup",
+      "Properties": {
+        "VpcId": {
+          "Fn::GetAtt": [
+            "Vpc",
+            "Outputs.VpcId"
+          ]
+        },
+        "GroupDescription": "ELB security group",
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "Eureka ELB security group"
+          }
+        ],
+        "SecurityGroupIngress": {
+          "IpProtocol": "tcp",
+          "FromPort": "8761",
+          "ToPort": "8761",
+          "CidrIp": "0.0.0.0/0"
+        }
+      }
+    },
+    "EurekaSecurityGroup": {
+      "Type": "AWS::EC2::SecurityGroup",
+      "Properties": {
+        "VpcId": {
+          "Fn::GetAtt": [
+            "Vpc",
+            "Outputs.VpcId"
+          ]
+        },
+        "GroupDescription": "Backend security group",
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "Eureka security group"
+          }
+        ],
+        "SecurityGroupIngress": {
+          "IpProtocol": "tcp",
+          "FromPort": "8761",
+          "ToPort": "8761",
+          "SourceSecurityGroupId": {
+            "Ref": "EurekaLoadBalancerSecurityGroup"
+          }
+        }
+      }
+    },
+    "EurekaLoadBalancer": {
+      "Type": "AWS::ElasticLoadBalancing::LoadBalancer",
+      "Properties": {
+        "Scheme": "internal",
+        "CrossZone": true,
+        "Subnets": [
+          {
+            "Fn::GetAtt": [
+              "VPC",
+              "Outputs.PrivateSubnet1Id"
+            ],
+            "Fn::GetAtt": [
+              "VPC",
+              "Outputs.PrivateSubnet2Id"
+            ],
+            "Fn::GetAtt": [
+              "VPC",
+              "Outputs.PrivateSubnet3Id"
+            ]
+          }
+        ],
+        "Listeners": [
+          {
+            "LoadBalancerPort": "8761",
+            "InstancePort": "8761",
+            "Protocol": "HTTP"
+          }
+        ],
+        "HealthCheck": {
+          "Target": "HTTP:8761/",
+          "HealthyThreshold": "2",
+          "UnhealthyThreshold": "10",
+          "Interval": "30",
+          "Timeout": "5"
+        },
+        "SecurityGroups": [
+          {
+            "Ref": "EurekaLoadBalancerSecurityGroup"
+          }
+        ]
+      }
+    },
+    "EurekaTask": {
+      "Type": "AWS::ECS::TaskDefinition",
+      "Properties": {
+        "ContainerDefinitions": [
+          {
+            "Name": "eureka",
+            "Image": "kanicz/microservices-eureka",
+            "Memory": "768",
+            "PortMappings": [
+              {
+                "HostPort": 8761,
+                "ContainerPort": 8761
+              }
+            ],
+            "Links": [
+              "cloudwatchlogs"
+            ]
+          },
+          {
+            "Name": "cloudwatchlogs",
+            "Image": "kanicz/ecs-cloudwatch-logs",
+            "Memory": "64",
+            "MountPoints": [
+              {
+                "SourceVolume": "ecs_instance_logs",
+                "ContainerPath": "/mnt/ecs_instance_logs"
+              }
+            ]
+          }
+        ],
+        "Volumes": [
+          {
+            "Name": "ecs_instance_logs",
+            "Host": {
+              "SourcePath": "/var/log"
+            }
+          }
+        ]
+      }
+    },
+    "EurekaService": {
+      "Type": "AWS::ECS::Service",
+      "DependsOn": [
+        "EcsClusterAutoScalingGroup"
+      ],
+      "Properties": {
+        "Cluster": {
+          "Ref": "EcsCluster"
+        },
+        "DesiredCount": "1",
+        "LoadBalancers": [
+          {
+            "ContainerName": "eureka",
+            "ContainerPort": "8761",
+            "LoadBalancerName": {
+              "Ref": "EurekaLoadBalancer"
+            }
+          }
+        ],
+        "Role": {
+          "Ref": "EcsServiceRole"
+        },
+        "TaskDefinition": {
+          "Ref": "EurekaTask"
         }
       }
     }
