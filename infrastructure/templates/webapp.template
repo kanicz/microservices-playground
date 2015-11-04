@@ -1,25 +1,23 @@
 {
   "AWSTemplateFormatVersion": "2010-09-09",
-  "Description": "Example stack, composed using other nested stacks",
+  "Description": "Example ECS Cluster with several microservices inside.",
   "Parameters": {
     "TemplatesBucket": {
       "Description": "Bucket with CloudFormation templates.",
-      "Type": "String",
-      "Default": "fp-aws-tools"
+      "Type": "String"
     },
-    "BastionHostKeyPair": {
-      "Description": "Keypair for ssh to bastion host.",
-      "Type": "AWS::EC2::KeyPair::KeyName",
-      "Default": "awstools"
+    "Keypair": {
+      "Description": "Keypair for ssh to bastion host and possibly other instances.",
+      "Type": "AWS::EC2::KeyPair::KeyName"
     },
     "InstanceType": {
-      "Description": "The EC2 instance type",
+      "Description": "The EC2 instance type inside ECS cluster.",
       "Type": "String",
       "Default": "t2.micro"
     }
   },
   "Resources": {
-    "VPC": {
+    "Vpc": {
       "Type": "AWS::CloudFormation::Stack",
       "Properties": {
         "TemplateURL": {
@@ -36,7 +34,7 @@
         }
       }
     },
-    "NAT": {
+    "Nat": {
       "Type": "AWS::CloudFormation::Stack",
       "Properties": {
         "TemplateURL": {
@@ -54,31 +52,31 @@
         "Parameters": {
           "VpcId": {
             "Fn::GetAtt": [
-              "VPC",
+              "Vpc",
               "Outputs.VpcId"
             ]
           },
           "PrivateSubnet1Id": {
             "Fn::GetAtt": [
-              "VPC",
+              "Vpc",
               "Outputs.PrivateSubnet1Id"
             ]
           },
           "PrivateSubnet2Id": {
             "Fn::GetAtt": [
-              "VPC",
+              "Vpc",
               "Outputs.PrivateSubnet2Id"
             ]
           },
           "PrivateSubnet3Id": {
             "Fn::GetAtt": [
-              "VPC",
+              "Vpc",
               "Outputs.PrivateSubnet3Id"
             ]
           },
           "PublicSubnet1Id": {
             "Fn::GetAtt": [
-              "VPC",
+              "Vpc",
               "Outputs.PublicSubnet1Id"
             ]
           }
@@ -103,26 +101,26 @@
         "Parameters": {
           "VpcId": {
             "Fn::GetAtt": [
-              "VPC",
+              "Vpc",
               "Outputs.VpcId"
             ]
           },
           "PublicSubnet1Id": {
             "Fn::GetAtt": [
-              "VPC",
+              "Vpc",
               "Outputs.PublicSubnet1Id"
             ]
           },
           "Keypair": {
-            "Ref": "BastionHostKeyPair"
+            "Ref": "Keypair"
           }
         }
       }
     },
-    "ECSCluster": {
+    "EcsCluster": {
       "Type": "AWS::ECS::Cluster"
     },
-    "ECSClusterAutoScalingGroup": {
+    "EcsClusterAutoScalingGroup": {
       "Type": "AWS::AutoScaling::AutoScalingGroup",
       "Properties": {
         "VPCZoneIdentifier": [
@@ -142,7 +140,7 @@
           }
         ],
         "LaunchConfigurationName": {
-          "Ref": "ECSClusterLaunchConfiguration"
+          "Ref": "EcsClusterLaunchConfiguration"
         },
         "MinSize": "1",
         "MaxSize": "1",
@@ -157,7 +155,7 @@
         }
       }
     },
-    "ECSClusterLaunchConfiguration": {
+    "EcsClusterLaunchConfiguration": {
       "Type": "AWS::AutoScaling::LaunchConfiguration",
       "Metadata": {
         "AWS::CloudFormation::Init": {
@@ -171,7 +169,7 @@
                       "#!/bin/bash\n",
                       "echo ECS_CLUSTER=",
                       {
-                        "Ref": "ECSCluster"
+                        "Ref": "EcsCluster"
                       },
                       " >> /etc/ecs/ecs.config"
                     ]
@@ -210,13 +208,13 @@
                     [
                       "[cfn-auto-reloader-hook]\n",
                       "triggers=post.update\n",
-                      "path=Resources.ECSClusterLaunchConfiguration.Metadata.AWS::CloudFormation::Init\n",
+                      "path=Resources.EcsClusterLaunchConfiguration.Metadata.AWS::CloudFormation::Init\n",
                       "action=/opt/aws/bin/cfn-init -v ",
                       "         --stack ",
                       {
                         "Ref": "AWS::StackName"
                       },
-                      "         --resource ECSClusterLaunchConfiguration ",
+                      "         --resource EcsClusterLaunchConfiguration ",
                       "         --region ",
                       {
                         "Ref": "AWS::Region"
@@ -249,10 +247,10 @@
           "Ref": "InstanceType"
         },
         "IamInstanceProfile": {
-          "Ref": "ECSInstanceProfile"
+          "Ref": "EcsInstanceProfile"
         },
         "KeyName": {
-          "Ref": "BastionHostKeyPair"
+          "Ref": "Keypair"
         },
         "UserData": {
           "Fn::Base64": {
@@ -266,7 +264,7 @@
                 {
                   "Ref": "AWS::StackName"
                 },
-                "         --resource ECSClusterLaunchConfiguration ",
+                "         --resource EcsClusterLaunchConfiguration ",
                 "         --region ",
                 {
                   "Ref": "AWS::Region"
@@ -277,7 +275,7 @@
                 {
                   "Ref": "AWS::StackName"
                 },
-                "         --resource ECSClusterAutoScalingGroup ",
+                "         --resource EcsClusterAutoScalingGroup ",
                 "         --region ",
                 {
                   "Ref": "AWS::Region"
@@ -294,7 +292,7 @@
         ]
       }
     },
-    "ECSServiceRole": {
+    "EcsServiceRole": {
       "Type": "AWS::IAM::Role",
       "Properties": {
         "AssumeRolePolicyDocument": {
@@ -335,7 +333,7 @@
         ]
       }
     },
-    "ECSIAMRole": {
+    "EcsIamRole": {
       "Type": "AWS::IAM::Role",
       "Properties": {
         "AssumeRolePolicyDocument": {
@@ -388,25 +386,23 @@
         ]
       }
     },
-    "ECSInstanceProfile": {
+    "EcsInstanceProfile": {
       "Type": "AWS::IAM::InstanceProfile",
       "Properties": {
         "Path": "/",
         "Roles": [
           {
-            "Ref": "ECSIAMRole"
+            "Ref": "EcsIamRole"
           }
         ]
       }
     },
-
-
     "WebappLoadBalancerSecurityGroup": {
       "Type": "AWS::EC2::SecurityGroup",
       "Properties": {
         "VpcId": {
           "Fn::GetAtt": [
-            "VPC",
+            "Vpc",
             "Outputs.VpcId"
           ]
         },
@@ -430,7 +426,7 @@
       "Properties": {
         "VpcId": {
           "Fn::GetAtt": [
-            "VPC",
+            "Vpc",
             "Outputs.VpcId"
           ]
         },
@@ -535,11 +531,11 @@
     "WebappService": {
       "Type": "AWS::ECS::Service",
       "DependsOn": [
-        "ECSClusterAutoScalingGroup"
+        "EcsClusterAutoScalingGroup"
       ],
       "Properties": {
         "Cluster": {
-          "Ref": "ECSCluster"
+          "Ref": "EcsCluster"
         },
         "DesiredCount": "1",
         "LoadBalancers": [
@@ -552,7 +548,7 @@
           }
         ],
         "Role": {
-          "Ref": "ECSServiceRole"
+          "Ref": "EcsServiceRole"
         },
         "TaskDefinition": {
           "Ref": "WebappTask"
