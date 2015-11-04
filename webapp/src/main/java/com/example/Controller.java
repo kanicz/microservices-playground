@@ -1,4 +1,4 @@
-package com.futureprocessing;
+package com.example;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
