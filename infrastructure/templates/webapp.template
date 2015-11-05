@@ -126,15 +126,15 @@
         "VPCZoneIdentifier": [
           {
             "Fn::GetAtt": [
-              "VPC",
+              "Vpc",
               "Outputs.PrivateSubnet1Id"
             ],
             "Fn::GetAtt": [
-              "VPC",
+              "Vpc",
               "Outputs.PrivateSubnet2Id"
             ],
             "Fn::GetAtt": [
-              "VPC",
+              "Vpc",
               "Outputs.PrivateSubnet3Id"
             ]
           }
@@ -142,9 +142,9 @@
         "LaunchConfigurationName": {
           "Ref": "EcsClusterLaunchConfiguration"
         },
-        "MinSize": "1",
-        "MaxSize": "1",
-        "DesiredCapacity": "1"
+        "MinSize": "2",
+        "MaxSize": "2",
+        "DesiredCapacity": "2"
       },
       "UpdatePolicy": {
         "AutoScalingRollingUpdate": {
@@ -287,7 +287,7 @@
         },
         "SecurityGroups": [
           {
-            "Ref": "WebppSecurityGroup"
+            "Ref": "EcsSecurityGroup"
           }
         ]
       }
@@ -421,7 +421,7 @@
         }
       }
     },
-    "WebppSecurityGroup": {
+    "EcsSecurityGroup": {
       "Type": "AWS::EC2::SecurityGroup",
       "Properties": {
         "VpcId": {
@@ -430,21 +430,37 @@
             "Outputs.VpcId"
           ]
         },
-        "GroupDescription": "Backend security group",
+        "GroupDescription": "Ecs security group",
         "Tags": [
           {
             "Key": "Name",
-            "Value": "Backend security group"
+            "Value": "Ecs security group"
           }
         ],
-        "SecurityGroupIngress": {
-          "IpProtocol": "tcp",
-          "FromPort": "80",
-          "ToPort": "80",
-          "SourceSecurityGroupId": {
-            "Ref": "WebappLoadBalancerSecurityGroup"
+        "SecurityGroupIngress": [
+          {
+            "IpProtocol": "tcp",
+            "FromPort": "80",
+            "ToPort": "80",
+            "SourceSecurityGroupId": {
+              "Ref": "WebappLoadBalancerSecurityGroup"
+            }
+          },
+          {
+            "IpProtocol": "tcp",
+            "FromPort": "8761",
+            "ToPort": "8761",
+            "SourceSecurityGroupId": {
+              "Ref": "EurekaLoadBalancerSecurityGroup"
+            }
+          },
+          {
+            "IpProtocol": "tcp",
+            "FromPort": "22",
+            "ToPort": "22",
+            "SourceSecurityGroupId": "sg-61af1005"
           }
-        }
+        ]
       }
     },
     "WebappLoadBalancer": {
@@ -454,15 +470,15 @@
         "Subnets": [
           {
             "Fn::GetAtt": [
-              "VPC",
+              "Vpc",
               "Outputs.PublicSubnet1Id"
             ],
             "Fn::GetAtt": [
-              "VPC",
+              "Vpv",
               "Outputs.PublicSubnet2Id"
             ],
             "Fn::GetAtt": [
-              "VPC",
+              "Vpc",
               "Outputs.PublicSubnet3Id"
             ]
           }
@@ -475,7 +491,7 @@
           }
         ],
         "HealthCheck": {
-          "Target": "HTTP:80/",
+          "Target": "HTTP:80/health",
           "HealthyThreshold": "2",
           "UnhealthyThreshold": "10",
           "Interval": "30",
@@ -494,7 +510,7 @@
         "ContainerDefinitions": [
           {
             "Name": "webapp",
-            "Image": "kanicz/microservices-webapp",
+            "Image": "kanicz/microservices-webapp:5.0",
             "Memory": "768",
             "PortMappings": [
               {
@@ -579,32 +595,6 @@
         }
       }
     },
-    "EurekaSecurityGroup": {
-      "Type": "AWS::EC2::SecurityGroup",
-      "Properties": {
-        "VpcId": {
-          "Fn::GetAtt": [
-            "Vpc",
-            "Outputs.VpcId"
-          ]
-        },
-        "GroupDescription": "Backend security group",
-        "Tags": [
-          {
-            "Key": "Name",
-            "Value": "Eureka security group"
-          }
-        ],
-        "SecurityGroupIngress": {
-          "IpProtocol": "tcp",
-          "FromPort": "8761",
-          "ToPort": "8761",
-          "SourceSecurityGroupId": {
-            "Ref": "EurekaLoadBalancerSecurityGroup"
-          }
-        }
-      }
-    },
     "EurekaLoadBalancer": {
       "Type": "AWS::ElasticLoadBalancing::LoadBalancer",
       "Properties": {
@@ -613,15 +603,15 @@
         "Subnets": [
           {
             "Fn::GetAtt": [
-              "VPC",
+              "Vpc",
               "Outputs.PrivateSubnet1Id"
             ],
             "Fn::GetAtt": [
-              "VPC",
+              "Vpc",
               "Outputs.PrivateSubnet2Id"
             ],
             "Fn::GetAtt": [
-              "VPC",
+              "Vpc",
               "Outputs.PrivateSubnet3Id"
             ]
           }
@@ -634,7 +624,7 @@
           }
         ],
         "HealthCheck": {
-          "Target": "HTTP:8761/",
+          "Target": "HTTP:8761/health",
           "HealthyThreshold": "2",
           "UnhealthyThreshold": "10",
           "Interval": "30",
@@ -653,7 +643,7 @@
         "ContainerDefinitions": [
           {
             "Name": "eureka",
-            "Image": "kanicz/microservices-eureka",
+            "Image": "kanicz/microservices-eureka:4.0",
             "Memory": "768",
             "PortMappings": [
               {
