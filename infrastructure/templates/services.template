@@ -2,121 +2,45 @@
   "AWSTemplateFormatVersion": "2010-09-09",
   "Description": "Example ECS Cluster with several microservices inside.",
   "Parameters": {
-    "TemplatesBucket": {
-      "Description": "Bucket with CloudFormation templates.",
-      "Type": "String"
-    },
-    "Keypair": {
-      "Description": "Keypair for ssh to bastion host and possibly other instances.",
-      "Type": "AWS::EC2::KeyPair::KeyName"
-    },
     "InstanceType": {
       "Description": "The EC2 instance type inside ECS cluster.",
       "Type": "String",
       "Default": "t2.micro"
+    },
+    "VpcId": {
+      "Description": "VPC Id",
+      "Type": "AWS::EC2::VPC::Id"
+    },
+    "PrivateSubnet1Id": {
+      "Description": "Private subnet 1 Id",
+      "Type": "AWS::EC2::Subnet::Id"
+    },
+    "PrivateSubnet2Id": {
+      "Description": "Private subnet 2 Id",
+      "Type": "AWS::EC2::Subnet::Id"
+    },
+    "PrivateSubnet3Id": {
+      "Description": "Private subnet 3 Id",
+      "Type": "AWS::EC2::Subnet::Id"
+    },
+    "PublicSubnet1Id": {
+      "Description": "Public subnet 1 id",
+      "Type": "AWS::EC2::Subnet::Id"
+    },
+    "PublicSubnet2Id": {
+      "Description": "Public subnet 2 id",
+      "Type": "AWS::EC2::Subnet::Id"
+    },
+    "PublicSubnet3Id": {
+      "Description": "Public subnet 3 id",
+      "Type": "AWS::EC2::Subnet::Id"
+    },
+    "KeyName": {
+      "Description": "keypair",
+      "Type": "AWS::EC2::KeyPair::KeyName"
     }
   },
   "Resources": {
-    "Vpc": {
-      "Type": "AWS::CloudFormation::Stack",
-      "Properties": {
-        "TemplateURL": {
-          "Fn::Join": [
-            "",
-            [
-              "https://s3.amazonaws.com/",
-              {
-                "Ref": "TemplatesBucket"
-              },
-              "/templates/vpc.template"
-            ]
-          ]
-        }
-      }
-    },
-    "Nat": {
-      "Type": "AWS::CloudFormation::Stack",
-      "Properties": {
-        "TemplateURL": {
-          "Fn::Join": [
-            "",
-            [
-              "https://s3.amazonaws.com/",
-              {
-                "Ref": "TemplatesBucket"
-              },
-              "/templates/nat.template"
-            ]
-          ]
-        },
-        "Parameters": {
-          "VpcId": {
-            "Fn::GetAtt": [
-              "Vpc",
-              "Outputs.VpcId"
-            ]
-          },
-          "PrivateSubnet1Id": {
-            "Fn::GetAtt": [
-              "Vpc",
-              "Outputs.PrivateSubnet1Id"
-            ]
-          },
-          "PrivateSubnet2Id": {
-            "Fn::GetAtt": [
-              "Vpc",
-              "Outputs.PrivateSubnet2Id"
-            ]
-          },
-          "PrivateSubnet3Id": {
-            "Fn::GetAtt": [
-              "Vpc",
-              "Outputs.PrivateSubnet3Id"
-            ]
-          },
-          "PublicSubnet1Id": {
-            "Fn::GetAtt": [
-              "Vpc",
-              "Outputs.PublicSubnet1Id"
-            ]
-          }
-        }
-      }
-    },
-    "Bastion": {
-      "Type": "AWS::CloudFormation::Stack",
-      "Properties": {
-        "TemplateURL": {
-          "Fn::Join": [
-            "",
-            [
-              "https://s3.amazonaws.com/",
-              {
-                "Ref": "TemplatesBucket"
-              },
-              "/templates/bastion.template"
-            ]
-          ]
-        },
-        "Parameters": {
-          "VpcId": {
-            "Fn::GetAtt": [
-              "Vpc",
-              "Outputs.VpcId"
-            ]
-          },
-          "PublicSubnet1Id": {
-            "Fn::GetAtt": [
-              "Vpc",
-              "Outputs.PublicSubnet1Id"
-            ]
-          },
-          "Keypair": {
-            "Ref": "Keypair"
-          }
-        }
-      }
-    },
     "EcsCluster": {
       "Type": "AWS::ECS::Cluster"
     },
@@ -125,26 +49,21 @@
       "Properties": {
         "VPCZoneIdentifier": [
           {
-            "Fn::GetAtt": [
-              "Vpc",
-              "Outputs.PrivateSubnet1Id"
-            ],
-            "Fn::GetAtt": [
-              "Vpc",
-              "Outputs.PrivateSubnet2Id"
-            ],
-            "Fn::GetAtt": [
-              "Vpc",
-              "Outputs.PrivateSubnet3Id"
-            ]
+            "Ref": "PrivateSubnet1Id"
+          },
+          {
+            "Ref": "PrivateSubnet2Id"
+          },
+          {
+            "Ref": "PrivateSubnet3Id"
           }
         ],
         "LaunchConfigurationName": {
           "Ref": "EcsClusterLaunchConfiguration"
         },
-        "MinSize": "2",
-        "MaxSize": "2",
-        "DesiredCapacity": "2"
+        "MinSize": "4",
+        "MaxSize": "4",
+        "DesiredCapacity": "4"
       },
       "UpdatePolicy": {
         "AutoScalingRollingUpdate": {
@@ -250,7 +169,7 @@
           "Ref": "EcsInstanceProfile"
         },
         "KeyName": {
-          "Ref": "Keypair"
+          "Ref": "KeyName"
         },
         "UserData": {
           "Fn::Base64": {
@@ -401,10 +320,7 @@
       "Type": "AWS::EC2::SecurityGroup",
       "Properties": {
         "VpcId": {
-          "Fn::GetAtt": [
-            "Vpc",
-            "Outputs.VpcId"
-          ]
+          "Ref": "VpcId"
         },
         "GroupDescription": "ELB security group",
         "Tags": [
@@ -425,10 +341,7 @@
       "Type": "AWS::EC2::SecurityGroup",
       "Properties": {
         "VpcId": {
-          "Fn::GetAtt": [
-            "Vpc",
-            "Outputs.VpcId"
-          ]
+          "Ref": "VpcId"
         },
         "GroupDescription": "Ecs security group",
         "Tags": [
@@ -451,16 +364,30 @@
             "FromPort": "8761",
             "ToPort": "8761",
             "SourceSecurityGroupId": {
-              "Ref": "EurekaLoadBalancerSecurityGroup"
+              "Ref": "EurekaServerLoadBalancerSecurityGroup"
             }
-          },
-          {
-            "IpProtocol": "tcp",
-            "FromPort": "22",
-            "ToPort": "22",
-            "SourceSecurityGroupId": "sg-61af1005"
           }
         ]
+      }
+    },
+    "EcsSelfIngress": {
+      "Type": "AWS::EC2::SecurityGroupIngress",
+      "Properties": {
+        "IpProtocol": "tcp",
+        "FromPort": "0",
+        "ToPort": "65535",
+        "SourceSecurityGroupId": {
+          "Fn::GetAtt": [
+            "EcsSecurityGroup",
+            "GroupId"
+          ]
+        },
+        "GroupId": {
+          "Fn::GetAtt": [
+            "EcsSecurityGroup",
+            "GroupId"
+          ]
+        }
       }
     },
     "WebappLoadBalancer": {
@@ -469,18 +396,13 @@
         "CrossZone": true,
         "Subnets": [
           {
-            "Fn::GetAtt": [
-              "Vpc",
-              "Outputs.PublicSubnet1Id"
-            ],
-            "Fn::GetAtt": [
-              "Vpv",
-              "Outputs.PublicSubnet2Id"
-            ],
-            "Fn::GetAtt": [
-              "Vpc",
-              "Outputs.PublicSubnet3Id"
-            ]
+            "Ref": "PublicSubnet1Id"
+          },
+          {
+            "Ref": "PublicSubnet2Id"
+          },
+          {
+            "Ref": "PublicSubnet3Id"
           }
         ],
         "Listeners": [
@@ -510,8 +432,28 @@
         "ContainerDefinitions": [
           {
             "Name": "webapp",
-            "Image": "kanicz/microservices-webapp:5.0",
-            "Memory": "768",
+            "Image": "kanicz/microservices-webapp",
+            "Memory": "1024",
+            "Environment": [
+              {
+                "Name": "eureka.client.serviceUrl.defaultZone",
+                "Value": {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "http://",
+                      {
+                        "Fn::GetAtt": [
+                          "EurekaServerLoadBalancer",
+                          "DNSName"
+                        ]
+                      },
+                      ":8761/eureka/"
+                    ]
+                  ]
+                }
+              }
+            ],
             "PortMappings": [
               {
                 "HostPort": 80,
@@ -571,14 +513,11 @@
         }
       }
     },
-    "EurekaLoadBalancerSecurityGroup": {
+    "EurekaServerLoadBalancerSecurityGroup": {
       "Type": "AWS::EC2::SecurityGroup",
       "Properties": {
         "VpcId": {
-          "Fn::GetAtt": [
-            "Vpc",
-            "Outputs.VpcId"
-          ]
+          "Ref": "VpcId"
         },
         "GroupDescription": "ELB security group",
         "Tags": [
@@ -595,25 +534,19 @@
         }
       }
     },
-    "EurekaLoadBalancer": {
+    "EurekaServerLoadBalancer": {
       "Type": "AWS::ElasticLoadBalancing::LoadBalancer",
       "Properties": {
-        "Scheme": "internal",
         "CrossZone": true,
         "Subnets": [
           {
-            "Fn::GetAtt": [
-              "Vpc",
-              "Outputs.PrivateSubnet1Id"
-            ],
-            "Fn::GetAtt": [
-              "Vpc",
-              "Outputs.PrivateSubnet2Id"
-            ],
-            "Fn::GetAtt": [
-              "Vpc",
-              "Outputs.PrivateSubnet3Id"
-            ]
+            "Ref": "PublicSubnet1Id"
+          },
+          {
+            "Ref": "PublicSubnet2Id"
+          },
+          {
+            "Ref": "PublicSubnet3Id"
           }
         ],
         "Listeners": [
@@ -632,19 +565,19 @@
         },
         "SecurityGroups": [
           {
-            "Ref": "EurekaLoadBalancerSecurityGroup"
+            "Ref": "EurekaServerLoadBalancerSecurityGroup"
           }
         ]
       }
     },
-    "EurekaTask": {
+    "EurekaServerTask": {
       "Type": "AWS::ECS::TaskDefinition",
       "Properties": {
         "ContainerDefinitions": [
           {
-            "Name": "eureka",
-            "Image": "kanicz/microservices-eureka:4.0",
-            "Memory": "768",
+            "Name": "eureka-server",
+            "Image": "kanicz/microservices-eureka-server",
+            "Memory": "1024",
             "PortMappings": [
               {
                 "HostPort": 8761,
@@ -677,7 +610,7 @@
         ]
       }
     },
-    "EurekaService": {
+    "EurekaServerService": {
       "Type": "AWS::ECS::Service",
       "DependsOn": [
         "EcsClusterAutoScalingGroup"
@@ -689,10 +622,10 @@
         "DesiredCount": "1",
         "LoadBalancers": [
           {
-            "ContainerName": "eureka",
+            "ContainerName": "eureka-server",
             "ContainerPort": "8761",
             "LoadBalancerName": {
-              "Ref": "EurekaLoadBalancer"
+              "Ref": "EurekaServerLoadBalancer"
             }
           }
         ],
@@ -700,24 +633,99 @@
           "Ref": "EcsServiceRole"
         },
         "TaskDefinition": {
-          "Ref": "EurekaTask"
+          "Ref": "EurekaServerTask"
+        }
+      }
+    },
+    "ConfigServerTask": {
+      "Type": "AWS::ECS::TaskDefinition",
+      "Properties": {
+        "ContainerDefinitions": [
+          {
+            "Name": "config-server",
+            "Image": "kanicz/microservices-config-server",
+            "Memory": "1024",
+            "Environment": [
+              {
+                "Name": "eureka.client.serviceUrl.defaultZone",
+                "Value": {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "http://",
+                      {
+                        "Fn::GetAtt": [
+                          "EurekaServerLoadBalancer",
+                          "DNSName"
+                        ]
+                      },
+                      ":8761/eureka/"
+                    ]
+                  ]
+                }
+              }
+            ],
+            "PortMappings": [
+              {
+                "HostPort": 9000,
+                "ContainerPort": 9000
+              }
+            ],
+            "Links": [
+              "cloudwatchlogs"
+            ]
+          },
+          {
+            "Name": "cloudwatchlogs",
+            "Image": "kanicz/ecs-cloudwatch-logs",
+            "Memory": "64",
+            "MountPoints": [
+              {
+                "SourceVolume": "ecs_instance_logs",
+                "ContainerPath": "/mnt/ecs_instance_logs"
+              }
+            ]
+          }
+        ],
+        "Volumes": [
+          {
+            "Name": "ecs_instance_logs",
+            "Host": {
+              "SourcePath": "/var/log"
+            }
+          }
+        ]
+      }
+    },
+    "ConfigServerService": {
+      "Type": "AWS::ECS::Service",
+      "DependsOn": [
+        "EcsClusterAutoScalingGroup"
+      ],
+      "Properties": {
+        "Cluster": {
+          "Ref": "EcsCluster"
+        },
+        "DesiredCount": "1",
+        "TaskDefinition": {
+          "Ref": "ConfigServerTask"
         }
       }
     }
   },
   "Outputs": {
-    "BastionHostIP": {
-      "Value": {
-        "Fn::GetAtt": [
-          "Bastion",
-          "Outputs.BastionHostIP"
-        ]
-      }
-    },
     "WebappUrl": {
       "Value": {
         "Fn::GetAtt": [
           "WebappLoadBalancer",
+          "DNSName"
+        ]
+      }
+    },
+    "EurekaUrl": {
+      "Value": {
+        "Fn::GetAtt": [
+          "EurekaServerLoadBalancer",
           "DNSName"
         ]
       }

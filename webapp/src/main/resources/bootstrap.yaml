@@ -1,10 +1,17 @@
 spring:
   application:
     name: webapp
+  cloud:
+    config:
+      discovery:
+        enabled: true
+        serviceId: config-server
 security:
   user:
     password: foo
 eureka:
   client:
     serviceUrl:
-      defaultZone: http://127.0.0.1:8761/eureka/
+      defaultZone: http://localhost:8761/eureka/
+  instance:
+    hostname: ${local-ipv4:N/A}
