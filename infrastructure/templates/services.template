@@ -452,6 +452,18 @@
                     ]
                   ]
                 }
+              },
+              {
+                "Name": "eureka.instance.hostname",
+                "Value": "${local-ipv4:N/A}"
+              },
+              {
+                "Name": "spring.cloud.config.discovery.enabled",
+                "Value": "true"
+              },
+              {
+                "Name": "spring.cloud.config.discovery.serviceId",
+                "Value": "config-server"
               }
             ],
             "PortMappings": [
@@ -461,11 +473,11 @@
               }
             ],
             "Links": [
-              "cloudwatchlogs"
+              "logs"
             ]
           },
           {
-            "Name": "cloudwatchlogs",
+            "Name": "logs",
             "Image": "kanicz/ecs-cloudwatch-logs",
             "Memory": "64",
             "MountPoints": [
@@ -585,11 +597,11 @@
               }
             ],
             "Links": [
-              "cloudwatchlogs"
+              "logs"
             ]
           },
           {
-            "Name": "cloudwatchlogs",
+            "Name": "logs",
             "Image": "kanicz/ecs-cloudwatch-logs",
             "Memory": "64",
             "MountPoints": [
@@ -663,6 +675,10 @@
                     ]
                   ]
                 }
+              },
+              {
+                "Name": "eureka.instance.hostname",
+                "Value": "${local-ipv4:N/A}"
               }
             ],
             "PortMappings": [
@@ -672,11 +688,11 @@
               }
             ],
             "Links": [
-              "cloudwatchlogs"
+              "logs"
             ]
           },
           {
-            "Name": "cloudwatchlogs",
+            "Name": "logs",
             "Image": "kanicz/ecs-cloudwatch-logs",
             "Memory": "64",
             "MountPoints": [

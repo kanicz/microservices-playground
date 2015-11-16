@@ -4,14 +4,16 @@ spring:
   cloud:
     config:
       discovery:
-        enabled: true
+        enabled: false
         serviceId: config-server
 security:
   user:
     password: foo
+welcome:
+  string: dev
 eureka:
   client:
     serviceUrl:
       defaultZone: http://localhost:8761/eureka/
   instance:
-    hostname: ${local-ipv4:N/A}
+    hostname: localhost

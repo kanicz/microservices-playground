@@ -1,13 +1,27 @@
+import ch.qos.logback.classic.encoder.PatternLayoutEncoder
 import ch.qos.logback.classic.net.SyslogAppender
+import ch.qos.logback.core.ConsoleAppender
 
 import static ch.qos.logback.classic.Level.INFO
 
-def syslogSuffixPattern = "%thread %logger %msg"
-appender("SYSLOG", SyslogAppender) {
-    syslogHost = "cloudwatchlogs"
-    port = 514
-    facility = "user"
-    suffixPattern = syslogSuffixPattern
-    stackTracePattern = syslogStackTracePattern
+def syslogSuffixPattern = "eureka_server %thread %logger %msg"
+def APP_PROFILE = System.getenv("SPRING_PROFILES_ACTIVE");
+def targetAppender = "CONSOLE"
+
+if ("syslog".equals(APP_PROFILE)) {
+    appender("SYSLOG", SyslogAppender) {
+        syslogHost = "logs"
+        port = 514
+        facility = "user"
+        suffixPattern = syslogSuffixPattern
+        stackTracePattern = syslogStackTracePattern
+    }
+    targetAppender = "SYSLOG"
+} else {
+    appender("CONSOLE", ConsoleAppender) {
+        encoder(PatternLayoutEncoder) {
+            pattern = "%d %5p | %t | %-55logger{55} | %m %n"
+        }
+    }
 }
-root(INFO, ["SYSLOG"])
+root(INFO, [targetAppender])

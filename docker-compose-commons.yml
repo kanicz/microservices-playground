@@ -1,0 +1,28 @@
+eureka-server:
+  container_name: eureka-server
+  dns: 8.8.8.8
+  restart: always
+  ports:
+      - "8761:8761"
+  build: eureka-server
+  links:
+    - logs
+  environment:
+      SPRING_PROFILES_ACTIVE: syslog
+config-server:
+  container_name: config-server
+  restart: always
+  dns: 8.8.8.8
+  build: config-server
+  links:
+    - eureka-server
+    - logs
+  environment:
+      EUREKA_INSTANCE_HOSTNAME: config-server
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
+      SPRING_PROFILES_ACTIVE: syslog
+logs:
+  container_name: logs
+  restart: always
+  dns: 8.8.8.8
+  build: local-logs
