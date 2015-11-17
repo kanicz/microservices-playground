@@ -1,13 +1,13 @@
+server:
+  port: 8081
 spring:
   application:
-    name: webapp
+    name: service
   cloud:
     config:
       discovery:
         enabled: false
         serviceId: config-server
-welcome:
-  string: dev
 eureka:
   client:
     serviceUrl:
