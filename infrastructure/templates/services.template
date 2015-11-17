@@ -436,7 +436,7 @@
             "Memory": "1024",
             "Environment": [
               {
-                "Name": "eureka.client.serviceUrl.defaultZone",
+                "Name": "EUREKA_CLIENT_SERVICEURL_DEFAULTZONE",
                 "Value": {
                   "Fn::Join": [
                     "",
@@ -454,16 +454,20 @@
                 }
               },
               {
-                "Name": "eureka.instance.hostname",
+                "Name": "EUREKA_INSTANCE_HOSTNAME",
                 "Value": "${local-ipv4:N/A}"
               },
               {
-                "Name": "spring.cloud.config.discovery.enabled",
+                "Name": "SPRING_CLOUD_CONFIG_DISCOVERY_ENABLED",
                 "Value": "true"
               },
               {
-                "Name": "spring.cloud.config.discovery.serviceId",
+                "Name": "SPRING_CLOUD_CONFIG_DISCOVERY_SERVICEID",
                 "Value": "config-server"
+              },
+              {
+                "Name": "SPRING_PROFILES_ACTIVE",
+                "Value": "default, syslog"
               }
             ],
             "PortMappings": [
@@ -590,6 +594,12 @@
             "Name": "eureka-server",
             "Image": "kanicz/microservices-eureka-server",
             "Memory": "1024",
+            "Environment": [
+              {
+                "Name": "SPRING_PROFILES_ACTIVE",
+                "Value": "default, syslog"
+              }
+            ],
             "PortMappings": [
               {
                 "HostPort": 8761,
@@ -659,7 +669,7 @@
             "Memory": "1024",
             "Environment": [
               {
-                "Name": "eureka.client.serviceUrl.defaultZone",
+                "Name": "EUREKA_CLIENT_SERVICEURL_DEFAULTZONE",
                 "Value": {
                   "Fn::Join": [
                     "",
@@ -677,8 +687,12 @@
                 }
               },
               {
-                "Name": "eureka.instance.hostname",
+                "Name": "EUREKA_INSTANCE_HOSTNAME",
                 "Value": "${local-ipv4:N/A}"
+              },
+              {
+                "Name": "SPRING_PROFILES_ACTIVE",
+                "Value": "default, syslog"
               }
             ],
             "PortMappings": [

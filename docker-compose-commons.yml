@@ -8,7 +8,7 @@ eureka-server:
   links:
     - logs
   environment:
-      SPRING_PROFILES_ACTIVE: syslog
+      SPRING_PROFILES_ACTIVE: default, syslog
 config-server:
   container_name: config-server
   restart: always
@@ -20,7 +20,7 @@ config-server:
   environment:
       EUREKA_INSTANCE_HOSTNAME: config-server
       EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
-      SPRING_PROFILES_ACTIVE: syslog
+      SPRING_PROFILES_ACTIVE: default, syslog
 logs:
   container_name: logs
   restart: always
