@@ -827,9 +827,6 @@
         "Cluster": {
           "Ref": "EcsCluster"
         },
-        "Role": {
-          "Ref": "EcsServiceRole"
-        },
         "DesiredCount": "1",
         "TaskDefinition": {
           "Ref": "ConfigServerTask"
