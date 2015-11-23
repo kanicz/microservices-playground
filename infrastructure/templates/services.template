@@ -529,6 +529,97 @@
         }
       }
     },
+    "ServiceTask": {
+      "Type": "AWS::ECS::TaskDefinition",
+      "Properties": {
+        "ContainerDefinitions": [
+          {
+            "Name": "service",
+            "Image": "kanicz/microservices-service",
+            "Memory": "1024",
+            "Environment": [
+              {
+                "Name": "EUREKA_CLIENT_SERVICEURL_DEFAULTZONE",
+                "Value": {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "http://",
+                      {
+                        "Fn::GetAtt": [
+                          "EurekaServerLoadBalancer",
+                          "DNSName"
+                        ]
+                      },
+                      ":8761/eureka/"
+                    ]
+                  ]
+                }
+              },
+              {
+                "Name": "EUREKA_INSTANCE_HOSTNAME",
+                "Value": "${local-ipv4:N/A}"
+              },
+              {
+                "Name": "SPRING_CLOUD_CONFIG_DISCOVERY_ENABLED",
+                "Value": "true"
+              },
+              {
+                "Name": "SPRING_CLOUD_CONFIG_DISCOVERY_SERVICEID",
+                "Value": "config-server"
+              },
+              {
+                "Name": "SPRING_PROFILES_ACTIVE",
+                "Value": "default, syslog"
+              }
+            ],
+            "PortMappings": [
+              {
+                "HostPort": 8081,
+                "ContainerPort": 8081
+              }
+            ],
+            "Links": [
+              "logs"
+            ]
+          },
+          {
+            "Name": "logs",
+            "Image": "kanicz/ecs-cloudwatch-logs",
+            "Memory": "64",
+            "MountPoints": [
+              {
+                "SourceVolume": "ecs_instance_logs",
+                "ContainerPath": "/mnt/ecs_instance_logs"
+              }
+            ]
+          }
+        ],
+        "Volumes": [
+          {
+            "Name": "ecs_instance_logs",
+            "Host": {
+              "SourcePath": "/var/log"
+            }
+          }
+        ]
+      }
+    },
+    "ServiceService": {
+      "Type": "AWS::ECS::Service",
+      "DependsOn": [
+        "EcsClusterAutoScalingGroup"
+      ],
+      "Properties": {
+        "Cluster": {
+          "Ref": "EcsCluster"
+        },
+        "DesiredCount": "1",
+        "TaskDefinition": {
+          "Ref": "ServiceTask"
+        }
+      }
+    },
     "EurekaServerLoadBalancerSecurityGroup": {
       "Type": "AWS::EC2::SecurityGroup",
       "Properties": {
@@ -735,6 +826,9 @@
       "Properties": {
         "Cluster": {
           "Ref": "EcsCluster"
+        },
+        "Role": {
+          "Ref": "EcsServiceRole"
         },
         "DesiredCount": "1",
         "TaskDefinition": {

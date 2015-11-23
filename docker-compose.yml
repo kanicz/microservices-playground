@@ -5,6 +5,8 @@ webapp:
   ports:
     - "8080:8080"
   build: webapp
+  links:
+    - service
   external_links:
     - eureka-server
     - config-server
