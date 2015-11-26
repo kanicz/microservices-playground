@@ -4,8 +4,11 @@ import org.springframework.cloud.netflix.feign.FeignClient;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
+import java.util.Map;
+
 @FeignClient("service")
-public interface ServiceClient {
-    @RequestMapping(method = RequestMethod.GET, value = "/welcome")
-    String getWelcomeMessage();
+public interface WeatherServiceClient {
+
+    @RequestMapping(method = RequestMethod.GET, value = "/weather")
+    Map<String, String> getWeather();
 }
