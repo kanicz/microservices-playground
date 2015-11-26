@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 
 import java.util.Map;
 
-@FeignClient("service")
+@FeignClient(name = "service")
 public interface WeatherServiceClient {
 
     @RequestMapping(method = RequestMethod.GET, value = "/weather")
