@@ -11,6 +11,10 @@
       "Description": "VPC Id",
       "Type": "AWS::EC2::VPC::Id"
     },
+    "ClusterSize": {
+      "Description": "ECS Cluster size",
+      "Type": "Number"
+    },
     "PrivateSubnet1Id": {
       "Description": "Private subnet 1 Id",
       "Type": "AWS::EC2::Subnet::Id"
@@ -61,9 +65,15 @@
         "LaunchConfigurationName": {
           "Ref": "EcsClusterLaunchConfiguration"
         },
-        "MinSize": "4",
-        "MaxSize": "4",
-        "DesiredCapacity": "4"
+        "MinSize": {
+          "Ref": "ClusterSize"
+        },
+        "MaxSize": {
+          "Ref": "ClusterSize"
+        },
+        "DesiredCapacity": {
+          "Ref": "ClusterSize"
+        }
       },
       "UpdatePolicy": {
         "AutoScalingRollingUpdate": {
