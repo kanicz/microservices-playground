@@ -16,7 +16,7 @@ webapp:
       EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
       SPRING_CLOUD_CONFIG_DISCOVERY_ENABLED: true
       SPRING_CLOUD_CONFIG_DISCOVERY_SERVICEID: config-server
-      SPRING_PROFILES_ACTIVE: default, syslog
+      SPRING_PROFILES_ACTIVE: syslog
 service:
   container_name: service
   restart: always
@@ -33,4 +33,4 @@ service:
       EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
       SPRING_CLOUD_CONFIG_DISCOVERY_ENABLED: true
       SPRING_CLOUD_CONFIG_DISCOVERY_SERVICEID: config-server
-      SPRING_PROFILES_ACTIVE: default, syslog
+      SPRING_PROFILES_ACTIVE: syslog

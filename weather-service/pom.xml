@@ -4,12 +4,12 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.example</groupId>
-    <artifactId>service</artifactId>
+    <artifactId>weather-service</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <packaging>jar</packaging>
 
-    <name>service</name>
-    <description>service</description>
+    <name>weather-service</name>
+    <description>weather-service</description>
 
     <parent>
         <groupId>org.springframework.boot</groupId>
@@ -68,7 +68,7 @@
     </dependencyManagement>
 
     <build>
-        <finalName>service</finalName>
+        <finalName>weather-service</finalName>
         <plugins>
             <plugin>
                 <groupId>org.springframework.boot</groupId>
