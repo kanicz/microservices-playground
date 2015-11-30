@@ -19,4 +19,4 @@ This is a simple weather app. It demonstrates solutions for common microservice 
 ```docker-compose --file docker-compose.yml up```
 
 ### Running on EC2 Container Service
-Create CloudFormation stack using ecs.template.
+Create CloudFormation stack from /infrastructure/aws/ecs.template
