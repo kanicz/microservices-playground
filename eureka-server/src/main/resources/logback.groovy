@@ -14,7 +14,6 @@ if ("syslog".equals(APP_PROFILE)) {
         port = 514
         facility = "user"
         suffixPattern = syslogSuffixPattern
-        stackTracePattern = syslogStackTracePattern
     }
     targetAppender = "SYSLOG"
 } else {

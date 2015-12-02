@@ -5,7 +5,7 @@
     "InstanceType": {
       "Description": "The EC2 instance type inside ECS cluster.",
       "Type": "String",
-      "Default": "t2.micro"
+      "Default": "t2.small"
     },
     "VpcId": {
       "Description": "VPC Id",
