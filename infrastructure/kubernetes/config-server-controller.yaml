@@ -1,0 +1,25 @@
+apiVersion: v1
+kind: ReplicationController
+metadata:
+  name: config-server
+  labels:
+    name: config-server
+spec:
+  replicas: 1
+  selector:
+    name: config-server
+  template:
+    metadata:
+      labels:
+        name: config-server
+    spec:
+      containers:
+      - name: config-server
+        image: kanicz/microservices-config-server
+        ports:
+        - containerPort: 9000
+        env:
+        - name: EUREKA_CLIENT_SERVICEURL_DEFAULTZONE
+          value: http://eureka-server.default:8761/eureka/
+        - name: EUREKA_INSTANCE_HOSTNAME
+          value: config-server.default

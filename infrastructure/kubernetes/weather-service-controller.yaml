@@ -1,0 +1,29 @@
+apiVersion: v1
+kind: ReplicationController
+metadata:
+  name: weather-service
+  labels:
+    name: weather-service
+spec:
+  replicas: 1
+  selector:
+    name: weather-service
+  template:
+    metadata:
+      labels:
+        name: weather-service
+    spec:
+      containers:
+      - name: weather-service
+        image: kanicz/microservices-weather-service
+        ports:
+        - containerPort: 8081
+        env:
+        - name: EUREKA_CLIENT_SERVICEURL_DEFAULTZONE
+          value: http://eureka-server.default:8761/eureka/
+        - name: EUREKA_INSTANCE_HOSTNAME
+          value: weather-service.default
+        - name: SPRING_CLOUD_CONFIG_DISCOVERY_ENABLED
+          value: 'true'
+        - name: SPRING_CLOUD_CONFIG_DISCOVERY_SERVICEID
+          value: config-server
