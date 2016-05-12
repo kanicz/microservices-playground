@@ -11,7 +11,7 @@ This is a simple weather app. It demonstrates solutions for common microservice 
 ### Supported deployment scenarios
 - dev environment with docker compose
 - EC2 Container Service
-- TODO: Google Container Engine (Kubernetes)
+- Google Container Engine (Kubernetes)
 - TODO: Mesos with Marathon
 
 ### Running locally with docker compose
